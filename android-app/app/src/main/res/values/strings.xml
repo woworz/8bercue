@@ -94,6 +94,7 @@
     <string name="ui_none_on_this_card" formatted="false">"None on this card"</string>
     <string name="ui_selected_esim" formatted="false">"Selected eSIM"</string>
     <string name="ui_delete_permanently" formatted="false">"Delete permanently"</string>
+    <string name="delete_confirmation_countdown">Delete permanently (%1$d s)</string>
     <string name="ui_activate_once" formatted="false">"Activate once"</string>
     <string name="ui_disable_once" formatted="false">"Disable once"</string>
     <string name="ui_save_nickname_79" formatted="false">"Save nickname"</string>

@@ -24,6 +24,7 @@
         <meta-data android:name="io.sentry.send-default-pii" android:value="false" />
         <activity
             android:name=".MainActivity"
+            android:enableOnBackInvokedCallback="true"
             android:exported="true"
             android:configChanges="orientation|screenSize">
             <intent-filter>

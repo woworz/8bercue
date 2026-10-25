@@ -94,6 +94,7 @@
     <string name="ui_none_on_this_card" formatted="false">"此卡没有已启用的配置"</string>
     <string name="ui_selected_esim" formatted="false">"所选 eSIM"</string>
     <string name="ui_delete_permanently" formatted="false">"永久删除"</string>
+    <string name="delete_confirmation_countdown">永久删除（%1$d 秒）</string>
     <string name="ui_activate_once" formatted="false">"启用一次"</string>
     <string name="ui_disable_once" formatted="false">"停用一次"</string>
     <string name="ui_save_nickname_79" formatted="false">"保存名称"</string>

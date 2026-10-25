@@ -27,6 +27,7 @@ public final class MainActivity extends Activity {
   private ShizukuConnection shizukuConnection;
   private boolean shizukuSelected;
   private boolean restoreDetailAfterRead;
+  private boolean renderHomeOnResume;
   private boolean recoveryReconnectNeeded,recoveryBootstrap,recoveryReviewEligible;
   private final java.util.ArrayList<String> recentResults = new java.util.ArrayList<>();
   private static final int QR = 40, IMAGE = 41, DIAGNOSTIC_EXPORT = 42;
@@ -151,6 +152,7 @@ public final class MainActivity extends Activity {
   protected void onResume() {
     super.onResume();
     resumed = true;
+    if(renderHomeOnResume){renderHomeOnResume=false;render();}
     connectExistingCompanion();
     handler.removeCallbacks(watch);
     handler.post(watch);
@@ -158,11 +160,12 @@ public final class MainActivity extends Activity {
   @Override
   protected void onPause() {
     resumed = false;
-    if(screen==1){clearCredentials();draft.changed();if(activeSheet!=null)activeSheet.dismiss();}
+    if(screen==1){clearCredentials();draft.changed();}
+    if((screen==1||screen==3||screen==4)&&activeSheet!=null)activeSheet.dismiss();
     // Invalidate pending prepare callbacks across any background/foreground boundary.
     navigationSession++;
     clearDetailSelection();
-    if(screen==3||screen==4)screen=0;
+    if(screen==3||screen==4){screen=0;renderHomeOnResume=true;}
     handler.removeCallbacks(watch);
     super.onPause();
   }
@@ -599,6 +602,64 @@ public final class MainActivity extends Activity {
     return s(R.string.recovery_reconnect_for_read);
   }
   private void prepare(String op, int index, String nickname) {
+    if (op.equals("delete")) {
+      confirmDeletion(index);
+      return;
+    }
+    if (ProfileActionPolicy.executesDirectly(op)) prepareAuthorizedAction(op, index, nickname);
+  }
+  private void confirmDeletion(int index) {
+    if (!detailCurrent() || selectedProfile != index
+        || !"disabled".equalsIgnoreCase(detailProfile.optString("state"))
+        || !detailProfile.optBoolean("canDelete", false)) return;
+    final IProfileService service = backend;
+    final long previewSession = navigationSession;
+    final JSONObject previewInventory = inventory;
+    final boolean[] confirmed = {false};
+    final boolean[] confirmationReady = {false};
+    status(s(R.string.ui_review_deletion), s(R.string.ui_check_the_selected_card_and_profile_before_deleting));
+    Sheet preview = new Sheet(s(R.string.ui_delete_esim));
+    preview.fact(s(R.string.ui_card), cardLabel());
+    preview.fact(s(R.string.ui_selected_esim), profileName(detailProfile));
+    preview.fact("ICCID", selectedIccid);
+    preview.copy(s(R.string.ui_this_permanently_removes_the_selected_profile_from_this_card_its));
+    Button confirm = preview.button(s(R.string.ui_delete_permanently), true, () -> {
+      if (!confirmationReady[0]) return;
+      if (previewSession != navigationSession || inventory != previewInventory || backend != service
+          || selectedProfile != index || !detailCurrent()) {
+        preview.dialog.dismiss();return;
+      }
+      confirmed[0] = true;
+      preview.dialog.dismiss();
+      prepareAuthorizedAction("delete", index, "");
+    });
+    // Status updates must not enable this button before the waiting period ends.
+    sheetControls.remove(confirm);
+    confirm.setEnabled(false);confirm.setAlpha(.45f);
+    confirm.setText(s(R.string.delete_confirmation_countdown, 3));
+    final CountDownTimer deleteCountdown = new CountDownTimer(3000, 1000) {
+      @Override public void onTick(long remaining) {
+        confirm.setText(s(R.string.delete_confirmation_countdown, (remaining + 999) / 1000));
+      }
+      @Override public void onFinish() {
+        if (destroyed || !resumed || !preview.dialog.isShowing()) return;
+        confirmationReady[0] = true;
+        confirm.setText(s(R.string.ui_delete_permanently));
+        sheetControls.add(confirm);
+        confirm.setEnabled(!OPERATIONS.running());
+        confirm.setAlpha(confirm.isEnabled() ? 1f : .45f);
+      }
+    };
+    preview.button(s(R.string.ui_cancel), false, preview.dialog::dismiss);
+    preview.dialog.setOnDismissListener(d -> {
+      deleteCountdown.cancel();
+      if (!confirmed[0]) status(s(R.string.ui_review_cancelled), s(R.string.ui_no_changes_were_made));
+    });
+    preview.show();
+    deleteCountdown.start();
+  }
+  /** Reversible actions arrive from their explicit click; deletion arrives only after confirmation. */
+  private void prepareAuthorizedAction(String op, int index, String nickname) {
     final IProfileService s = backend;
     if (s == null || OPERATIONS.running())
       return;
@@ -628,20 +689,8 @@ public final class MainActivity extends Activity {
             render();
             return;
           }
-          if (ProfileActionPolicy.executesDirectly(op)) {
-            execute(s,token,op);return;
-          }
-          String warning = s(R.string.ui_this_permanently_removes_the_selected_profile_from_this_card_its);
-          status(s(R.string.ui_review_deletion), s(R.string.ui_check_the_selected_card_and_profile_before_deleting));
-          final boolean[] confirmed = {false};
-          Sheet preview = new Sheet(op.equals("switch") ? s(R.string.ui_activate_esim) : op.equals("delete") ? s(R.string.ui_delete_esim) : op.equals("disable") ? s(R.string.ui_disable_esim) : s(R.string.ui_save_nickname));
-          if (op.equals("switch")) preview.fact(s(R.string.ui_currently_enabled), r.optString("from", "").isEmpty() ? s(R.string.ui_none_on_this_card) : r.optString("from"));
-          preview.fact(s(R.string.ui_selected_esim), r.optString("to", s(R.string.ui_selected_esim)));preview.copy(warning);
-          preview.button(op.equals("delete") ? s(R.string.ui_delete_permanently) : op.equals("switch") ? s(R.string.ui_activate_once) : op.equals("disable") ? s(R.string.ui_disable_once) : s(R.string.ui_save_nickname_79), true, () -> {
-            confirmed[0] = true;preview.dialog.dismiss();execute(s, token, op);
-          });
-          preview.button(s(R.string.ui_cancel), false, preview.dialog::dismiss);
-          preview.dialog.setOnDismissListener(d -> { if (!confirmed[0]) status(s(R.string.ui_review_cancelled), s(R.string.ui_no_changes_were_made)); });preview.show();
+          if (op.equals("delete") && !detailCurrent()) return;
+          execute(s, token, op);
         });
   }
   private void execute(IProfileService s, String token, String op) {
@@ -787,12 +836,13 @@ public final class MainActivity extends Activity {
     screen = destination;
     render();
   }
-  @Override public boolean onKeyUp(int keyCode, KeyEvent event) {
-    if (Build.VERSION.SDK_INT < 33 && keyCode == KeyEvent.KEYCODE_BACK) { handleBack(); return true; }
-    return super.onKeyUp(keyCode, event);
-  }
+  // API 33+ uses the OnBackInvokedCallback registered in onCreate; retain the legacy fallback.
+  @android.annotation.SuppressLint("GestureBackNavigation")
+  @SuppressWarnings("deprecation")
+  @Override public void onBackPressed() { handleBack(); }
   private void handleBack() {
     if(OPERATIONS.running())return;
+    if(activeSheet!=null&&activeSheet.isShowing()){activeSheet.dismiss();return;}
     if(screen==4){screen=3;navigationSession++;render();return;}
     if (screen == 1 && draft.form) { clearCredentials();activation = null;confirmation = null;draft.form = false;showConfirmation = false;pendingImport = null;draft.changed();navigationSession++;render(); }
     else if (screen != 0) navigate(0);
@@ -993,7 +1043,7 @@ public final class MainActivity extends Activity {
       body.addView(text(label, 12, MUTED, false), margin(16));
       body.addView(text(mask(value), 16, TEXT, false), margin(3));
     }
-    void button(String label, boolean primary, Runnable click) {
+    Button button(String label, boolean primary, Runnable click) {
       Button b = MainActivity.this.button(label, primary);
       boolean dismiss = label.equals(s(R.string.ui_done)) || label.equals(s(R.string.ui_cancel));
       if (!dismiss) {
@@ -1005,6 +1055,7 @@ public final class MainActivity extends Activity {
       }
       b.setOnClickListener(v -> { if (dismiss || !OPERATIONS.running()) click.run(); });
       body.addView(b, margin(16));
+      return b;
     }
     void show() {
       hideKeyboard();dialog.show();Window w = dialog.getWindow();
