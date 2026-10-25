@@ -1,5 +1,23 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
+    <string name="connection_choose">Connect your card</string>
+    <string name="connection_choose_help">Connect using Shizuku on this phone, or use ADB from a trusted computer. Card access is checked after authorization.</string>
+    <string name="connection_already_active">A management connection is already active. Continue using this connection.</string>
+    <string name="connection_lost_help">Reconnect using Shizuku or your computer, then verify the card and recovery state. Pending operations will not be retried automatically.</string>
+    <string name="shizuku_connect">Connect using Shizuku</string>
+    <string name="shizuku_active">Shizuku connection active</string>
+    <string name="shizuku_help">Install and start Shizuku using wireless debugging or ADB, then allow 8bercue in the authorization prompt. Shizuku must run as Shell (UID 2000). Root mode is not supported by this build.</string>
+    <string name="shizuku_session_help">Shizuku starts the same management service as the computer connection. Reconnect after a reboot, app update or service termination. Stopping Shizuku or revoking its permission does not stop an already connected management service. Connecting never changes profiles.</string>
+    <string name="shizuku_connecting">Connecting using Shizuku</string>
+    <string name="shizuku_connecting_help">Starting the authenticated local service. Keep 8bercue open; card and recovery checks follow.</string>
+    <string name="shizuku_not_running">Shizuku is unavailable. Install or open Shizuku, start it using wireless debugging or ADB, return here and retry.</string>
+    <string name="shizuku_denied">Shizuku permission was denied. Allow 8bercue in Shizuku → Authorized applications, then return here and retry.</string>
+    <string name="shizuku_update">This connection requires Shizuku API v12 or later. Update Shizuku and retry.</string>
+    <string name="shizuku_shell_required">Start Shizuku using wireless debugging or ADB (Shell UID 2000). This build does not support Root or Sui mode; you can also connect using your computer.</string>
+    <string name="shizuku_failed">The local service could not connect. Keep 8bercue open and retry. If it repeats, check Shizuku authorization and Settings → Compatibility check, or connect using your computer.</string>
+    <string name="shizuku_timeout">Connection was not confirmed. Check the current connection before retrying; a late connection may still appear.</string>
+    <string name="shizuku_retry">Retry Shizuku connection</string>
+    <string name="shizuku_open">Open or install Shizuku</string>
     <string name="ui_connect_your_card" formatted="false">"Connect your card"</string>
     <string name="ui_connect_using_your_computer_to_check_this_card" formatted="false">"Connect using your computer to check this card."</string>
     <string name="ui_an_operation_ended_while_this_screen_was_unavailable_verify_the" formatted="false">"An operation ended while this screen was unavailable. Verify the card before continuing; do not repeat the operation."</string>

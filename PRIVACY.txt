@@ -23,7 +23,11 @@ operations do not require an 8bercue account or an 8bercue server.
 Camera access is optional and used to scan an activation QR code. Selected QR
 images are decoded on your phone. There is no advertising or behavioral analytics SDK.
 The computer connection starts an authenticated ADB Shell service on your phone.
-No separate privilege-manager app is required.
+You may instead authorize the optional Shizuku integration to start the same service
+on the phone. This requires Shizuku running through wireless debugging or ADB.
+Shizuku authorization is handled locally. The connected management service has the
+same lifetime as an ADB connection; stopping Shizuku or revoking its permission
+does not terminate an already connected management service or interrupt card work.
 
 Transaction records contain hashes of card/profile identity, operation state,
 timestamps and verification metadata. Notification records also contain the

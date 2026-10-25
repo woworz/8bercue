@@ -31,7 +31,17 @@ dsn=urlsplit(dsn_match.group(1) if dsn_match else '')
 configured=dsn.scheme=='https' and bool(dsn.hostname) and bool(dsn.username) and dsn.password is None and bool(re.fullmatch(r'/[0-9]+',dsn.path)) and not dsn.query and not dsn.fragment
 if a.require_reporting and not configured:raise SystemExit('FAIL configured HTTPS reporting DSN required')
 result['reportingConfiguration']='CONFIGURED' if configured else 'UNAVAILABLE'
-if 'shizuku' in tree.lower():raise SystemExit('FAIL external privilege-manager provider or permission')
+providers=re.findall(r'(?ms)^(\s*)E: provider\b(.*?)(?=^\1E:|\Z)',tree)
+shizuku=[block for _,block in providers if '"rikka.shizuku.ShizukuProvider"' in block]
+if len(shizuku)!=1:
+    raise SystemExit('FAIL missing or duplicate Shizuku provider')
+for attribute,value in [('authorities','"dev.sid.fiveberinspector.shizuku"'),
+                        ('permission','"android.permission.INTERACT_ACROSS_USERS_FULL"'),
+                        ('exported',r'(?:true|\(type 0x12\)0xffffffff|\(type 0x12\)0x1)(?:\s|$)')]:
+    if not re.search(r'android:'+attribute+r'\([^)]*\)='+value,shizuku[0]):
+        raise SystemExit('FAIL Shizuku provider '+attribute)
+if 'moe.shizuku.manager.permission.' in tree.replace('moe.shizuku.manager.permission.API_V23',''):
+    raise SystemExit('FAIL reserved Shizuku manager permission')
 if not re.search(r'android:allowBackup\([^)]*\)=(?:false|\(type 0x12\)0x0)(?:\s|$)',tree):raise SystemExit('FAIL backup must be disabled')
 run('zipalign','-c','-P','16','4',a.apk)
 signed=subprocess.run([str(a.build_tools/'apksigner'),'verify','--verbose','--print-certs',str(a.apk)],capture_output=True,text=True)

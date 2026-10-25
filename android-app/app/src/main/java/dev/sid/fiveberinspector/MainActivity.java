@@ -24,6 +24,8 @@ public final class MainActivity extends Activity {
   private boolean connectionExpired;
   private TextView connectionCountdown;
   private String connectionFeedback = "";
+  private ShizukuConnection shizukuConnection;
+  private boolean shizukuSelected;
   private boolean restoreDetailAfterRead;
   private boolean recoveryReconnectNeeded,recoveryBootstrap,recoveryReviewEligible;
   private final java.util.ArrayList<String> recentResults = new java.util.ArrayList<>();
@@ -116,7 +118,22 @@ public final class MainActivity extends Activity {
   @Override
   public void onCreate(Bundle saved) {
     super.onCreate(saved);
-    title = s(R.string.ui_connect_your_card); detail = s(R.string.ui_connect_using_your_computer_to_check_this_card);
+    title = s(R.string.ui_connect_your_card); detail = s(R.string.connection_choose_help);
+    shizukuConnection = new ShizukuConnection(this, new ShizukuConnection.Listener() {
+      public void starting() {
+        boolean recovering=recoveryReconnectNeeded&&backend!=null;
+        if(recovering)CompanionBinderProvider.beginManagementRecoveryBootstrap();
+        else CompanionBinderProvider.beginManagementBootstrap();
+        recoveryBootstrap=recovering;
+        compatibility=new JSONObject();fallback=false;binderReadOnlyInventory=false;
+        navigationSession++;clearDetailSelection();
+        statusPreservingOutcome(s(R.string.shizuku_connecting),s(R.string.shizuku_connecting_help));render();
+      }
+      public void connected() { connectDirect(); }
+      public void failed(int message, CompatibilityDiagnostics.Failure reason) {
+        statusPreservingOutcome(s(R.string.ui_connection_not_completed),s(message));render();
+      }
+    });
     if (Build.VERSION.SDK_INT >= 33)
       getOnBackInvokedDispatcher().registerOnBackInvokedCallback(
           android.window.OnBackInvokedDispatcher.PRIORITY_DEFAULT, this::handleBack);
@@ -194,19 +211,21 @@ public final class MainActivity extends Activity {
     if(destroyed||!resumed||OPERATIONS.running()||backend!=null)return;
     IProfileService service=CompanionBinderProvider.management();
     if(service==null)return;
+    shizukuSelected=CompanionBinderProvider.usesShizuku();
     try {
       service.asBinder().linkToDeath(()->runOnUiThread(()->{
         if(backend!=service)return;
         backend=null;compatibility=new JSONObject();navigationSession++;clearDetailSelection();
         compatibilityFailure(CompatibilityDiagnostics.Stage.BINDER,
             CompatibilityDiagnostics.Failure.SERVICE_DISCONNECTED);
-        statusPreservingOutcome(s(R.string.ui_connection_lost), s(R.string.ui_start_the_computer_connection_again_pending_operations_will_not));render();
+        inventory=new JSONObject();cardInfo=new JSONObject();
+        statusPreservingOutcome(s(R.string.ui_connection_lost), s(R.string.connection_lost_help));render();
       }),0);
       backend=service;directManagement=true;companionManagement=true;fallback=false;
       recoveryBootstrap=false;
-      CompatibilityDiagnostics.ready(CompatibilityDiagnostics.Transport.ADB_COMPANION);
+      CompatibilityDiagnostics.ready(connectionTransport());
       if(bootstrapSheet!=null){bootstrapSheet.dismiss();bootstrapSheet=null;}
-      if(screen==6)screen=0;
+      if(screen==6||screen==7)screen=0;
       status(s(R.string.ui_connected), s(R.string.ui_checking_card_and_recovery_state));render();checkRecovery();
     }catch(Exception unavailable){
       backend=null;compatibility=new JSONObject();
@@ -222,6 +241,8 @@ public final class MainActivity extends Activity {
       return;
     }
     if(OPERATIONS.running()){status(s(R.string.ui_operation_in_progress), s(R.string.ui_wait_for_verification_before_changing_connection));return;}
+    if(shizukuConnection!=null)shizukuConnection.cancel();
+    shizukuSelected=false;
     boolean recovering=recoveryReconnectNeeded&&backend!=null;
     try {if(recovering)CompanionBinderProvider.beginManagementRecoveryBootstrap();else CompanionBinderProvider.beginManagementBootstrap();}
     catch(SecurityException active){backend=null;compatibility=new JSONObject();connectDirect();return;}
@@ -236,6 +257,27 @@ public final class MainActivity extends Activity {
     connectionDeadline=android.os.SystemClock.elapsedRealtime()+120000;connectionExpired=false;connectionFeedback="";statusPreservingOutcome(s(R.string.ui_waiting_for_computer),s(R.string.ui_copy_the_command_below_and_run_it_within_two_minutes));screen=6;render();
   }
 
+  private CompatibilityDiagnostics.Transport connectionTransport(){
+    return shizukuSelected?CompatibilityDiagnostics.Transport.SHIZUKU:CompatibilityDiagnostics.Transport.ADB_COMPANION;
+  }
+  private void beginShizukuBootstrap(){
+    if(OPERATIONS.running()){status(s(R.string.ui_operation_in_progress),s(R.string.ui_wait_for_verification_before_changing_connection));return;}
+    if(!managementUnavailable().isEmpty()){
+      status(s(R.string.ui_device_not_supported_by_this_build),managementUnavailable());render();return;
+    }
+    if(backend!=null&&!recoveryReconnectNeeded){
+      status(s(R.string.ui_connected),s(R.string.connection_already_active));render();return;
+    }
+    shizukuSelected=true;screen=7;navigationSession++;clearDetailSelection();
+    statusPreservingOutcome(s(R.string.shizuku_connecting),s(R.string.shizuku_help));render();
+    shizukuConnection.start();render();
+  }
+  private void openShizuku(){
+    Intent launch=getPackageManager().getLaunchIntentForPackage("moe.shizuku.privileged.api");
+    if(launch==null)launch=new Intent(Intent.ACTION_VIEW,android.net.Uri.parse("https://shizuku.rikka.app/download/"));
+    try{startActivity(launch);}catch(ActivityNotFoundException unavailable){status(s(R.string.ui_connection_not_completed),s(R.string.shizuku_not_running));}
+  }
+
   private boolean useCompanion() {
     return LabSupport.socketEligible()
         && getPreferences(0).getBoolean("preferCompanion", true);
@@ -247,7 +289,7 @@ public final class MainActivity extends Activity {
   private void connect() {
     if (!managementUnavailable().isEmpty()) { status(s(R.string.ui_device_not_supported_by_this_build),managementUnavailable());return; }
     connectExistingCompanion();
-    if(backend==null)status(s(R.string.ui_connect_your_card),s(R.string.ui_choose_connect_using_computer_and_copy_and_run_its_adb_command));
+    if(backend==null)status(s(R.string.ui_connect_your_card),s(R.string.connection_choose_help));
   }
   private interface Job {
     JSONObject run() throws Exception;
@@ -740,7 +782,7 @@ public final class MainActivity extends Activity {
     if (screen == 1 && destination != 1) { clearCredentials();pendingImport = null;draft.changed(); }
     navigationSession++;
     if (destination != 1) { draft.form = false;showConfirmation = false; }
-    if (!getPreferences(0).getBoolean("pending", false)) { notice = "";title = backend != null ? s(R.string.ui_card_connected) : s(R.string.ui_connect_your_card);detail = backend != null ? "" : s(R.string.ui_connect_using_your_computer); }
+    if (!getPreferences(0).getBoolean("pending", false)) { notice = "";title = backend != null ? s(R.string.ui_card_connected) : s(R.string.ui_connect_your_card);detail = backend != null ? "" : s(R.string.connection_choose_help); }
     selectedProfile=-1;selectedIccid="";selectedProfileKey="";detailProfile=null;
     screen = destination;
     render();
@@ -772,7 +814,7 @@ public final class MainActivity extends Activity {
     root.setBackgroundColor(BG);
     PageHeader.applyInsets(root);
     root.addView(new PageHeader(this,
-        screen == 0 ? "8bercue" : screen == 1 ? s(R.string.ui_add_esim) : screen == 3 ? s(R.string.ui_esim_details) : screen == 4 ? s(R.string.ui_rename_esim) : screen == 5 ? s(R.string.ui_operation_records) : screen == 6 ? s(R.string.ui_connect_your_phone) : s(R.string.ui_settings),
+        screen == 0 ? "8bercue" : screen == 1 ? s(R.string.ui_add_esim) : screen == 3 ? s(R.string.ui_esim_details) : screen == 4 ? s(R.string.ui_rename_esim) : screen == 5 ? s(R.string.ui_operation_records) : screen == 6 || screen == 7 ? s(R.string.ui_connect_your_phone) : s(R.string.ui_settings),
         screen == 1 && draft.form ? s(R.string.ui_back_to_add_methods) : s(R.string.ui_back_to_my_esims),
         screen == 0 ? null : this::handleBack,
         screen == 0 ? () -> navigate(2) : null));
@@ -813,6 +855,7 @@ public final class MainActivity extends Activity {
     else if(screen==4) renameScreen();
     else if(screen==5) recordsScreen();
     else if(screen==6) connectionScreen();
+    else if(screen==7) shizukuScreen();
     else settings();
     updateStatusRegion();
   }
@@ -826,7 +869,7 @@ public final class MainActivity extends Activity {
     choice.setGravity(Gravity.START|Gravity.CENTER_VERTICAL);
     choice.setTextSize(18);choice.setTextColor(TEXT);
     choice.setBackgroundColor(Color.TRANSPARENT);
-    choice.setOnClickListener(v->{if(backend!=null)chooseCard();else beginDirectBootstrap();});
+    choice.setOnClickListener(v->{if(backend!=null)chooseCard();else chooseConnection();});
     taskControls.add(choice);card.addView(choice,new LinearLayout.LayoutParams(-1,-2));
     card.addView(text(s(R.string.ui_eid)+inventory.optString("eidMasked",s(R.string.ui_not_checked)),12,MUTED,false),margin(4));
     card.addView(text(inventory.has("profiles")?s(R.string.ui_card_connected_read_verified):s(R.string.ui_connect_to_check_this_card),12,MUTED,false),margin(14));
@@ -836,7 +879,7 @@ public final class MainActivity extends Activity {
     Button refresh=action(s(R.string.ui_refresh),false,this::refresh);refresh.setTextSize(13);refresh.setBackgroundColor(Color.TRANSPARENT);
     heading.addView(refresh,new LinearLayout.LayoutParams(dp(88),dp(48)));add(heading,22);
     JSONArray profiles=inventory.optJSONArray("profiles");
-    if(profiles==null){add(text(backend==null?s(R.string.ui_your_esims_will_appear_here):s(R.string.ui_choose_a_card_or_check_compatibility_in_settings)),16);add(action(backend==null?s(R.string.ui_connect_using_computer):s(R.string.ui_choose_card),true,backend==null?this::beginDirectBootstrap:this::chooseCard),20);return;}
+    if(profiles==null){add(text(backend==null?s(R.string.ui_your_esims_will_appear_here):s(R.string.ui_choose_a_card_or_check_compatibility_in_settings)),16);add(action(backend==null?s(R.string.connection_choose):s(R.string.ui_choose_card),true,backend==null?this::chooseConnection:this::chooseCard),20);return;}
     for(int i=0;i<profiles.length();i++){
       final int index=i;JSONObject profile=profiles.optJSONObject(i);if(profile==null)continue;
       LinearLayout row=new LinearLayout(this);row.setGravity(Gravity.CENTER_VERTICAL);row.setMinimumHeight(dp(96));row.setPadding(0,dp(16),0,dp(16));
@@ -905,6 +948,22 @@ public final class MainActivity extends Activity {
     add(text(s(R.string.ui_3_wait_for_connection_confirmation),18,TEXT,true),24);
     add(text(s(R.string.ui_your_computer_must_say_8bercue_connected_or_already_connected_th)),10);
     add(text(s(R.string.ui_no_profiles_are_changed_by_connecting_if_the_timer_expires_tap_s),12,MUTED,false),20);
+    add(action(s(R.string.shizuku_connect),false,this::beginShizukuBootstrap),16);
+  }
+  private void chooseConnection(){
+    Sheet choice=new Sheet(s(R.string.connection_choose));choice.copy(s(R.string.connection_choose_help));
+    choice.button(s(R.string.shizuku_connect),true,()->{choice.dialog.dismiss();beginShizukuBootstrap();});
+    choice.button(s(R.string.ui_connect_using_computer),false,()->{choice.dialog.dismiss();beginDirectBootstrap();});
+    choice.button(s(R.string.ui_cancel),false,choice.dialog::dismiss);choice.show();
+  }
+  private void shizukuScreen(){
+    add(text(s(R.string.shizuku_connect),28,TEXT,false),28);
+    add(text(s(R.string.shizuku_help)),12);
+    Button retry=action(s(R.string.shizuku_retry),true,this::beginShizukuBootstrap);
+    availability(retry,shizukuConnection==null||!shizukuConnection.busy());add(retry,24);
+    add(action(s(R.string.shizuku_open),false,this::openShizuku),12);
+    add(action(s(R.string.ui_connect_using_computer),false,this::beginDirectBootstrap),12);
+    add(text(s(R.string.shizuku_session_help),12,MUTED,false),20);
   }
   private GradientDrawable rounded(int color,int radius){GradientDrawable d=new GradientDrawable();d.setColor(color);d.setCornerRadius(dp(radius));return d;}
   private void ripple(View v){android.util.TypedValue value=new android.util.TypedValue();getTheme().resolveAttribute(android.R.attr.selectableItemBackground,value,true);v.setBackgroundResource(value.resourceId);}
@@ -1057,7 +1116,7 @@ public final class MainActivity extends Activity {
     }
     check.copy(s(R.string.ui_order_secure_element_hal_aidl_then_hidl_telephony_then_omapi_mul));
     if(backend!=null)check.button(s(R.string.ui_choose_card),false,()->{check.dialog.dismiss();chooseCard();});
-    check.button(s(R.string.ui_run_read_only_check),false,()->{check.dialog.dismiss();if(backend!=null||fallback)refresh();else status(s(R.string.ui_connect_first),s(R.string.ui_use_connect_using_computer_then_run_the_compatibility_check));});
+    check.button(s(R.string.ui_run_read_only_check),false,()->{check.dialog.dismiss();if(backend!=null||fallback)refresh();else status(s(R.string.ui_connect_first),s(R.string.connection_choose_help));});
     check.button(s(R.string.ui_done),false,check.dialog::dismiss);check.show();
   }
   private void settings() {
@@ -1065,7 +1124,8 @@ public final class MainActivity extends Activity {
     add(text(s(R.string.ui_card_connection)+compatibility.optString("route",s(R.string.ui_not_checked_in_this_connection)),14,MUTED,false),8);
     add(action(s(R.string.ui_compatibility_check),false,this::showCompatibility),12);
     if(backend!=null)add(action(s(R.string.ui_choose_card),false,this::chooseCard),12);
-    add(text(directManagement && backend != null ? s(R.string.ui_computer_connection_active)
+    add(text(backend != null && CompanionBinderProvider.usesShizuku() ? s(R.string.shizuku_active)
+          : directManagement && backend != null ? s(R.string.ui_computer_connection_active)
           : companionManagement ? s(R.string.ui_local_companion_connected)
           : binderReadOnlyInventory ? s(R.string.ui_read_only_diagnostic_connection)
           : backend != null ? s(R.string.ui_computer_connection_active)
@@ -1073,6 +1133,7 @@ public final class MainActivity extends Activity {
     if (LabSupport.socketEligible())
       add(action(s(R.string.ui_use_legacy_local_companion), useCompanion(), this::selectLegacyCompanion), 12);
     add(action(s(R.string.ui_connect_using_computer), backend==null, this::beginDirectBootstrap), 12);
+    add(action(s(R.string.shizuku_connect), backend==null, this::beginShizukuBootstrap), 12);
     if (CompatibilityDiagnostics.lastFailure()!=null)
       add(action(s(R.string.ui_feedback_2),false,this::offerCompatibilityReport),12);
     if (BuildConfig.DEBUG) add(action(s(R.string.ui_check_direct_binder_companion_read_only), false, () -> {
@@ -1278,7 +1339,7 @@ public final class MainActivity extends Activity {
   }
   private void compatibilityFailure(CompatibilityDiagnostics.Stage stage,
       CompatibilityDiagnostics.Failure reason) {
-    CompatibilityDiagnostics.failed(CompatibilityDiagnostics.Transport.ADB_COMPANION,stage,reason);
+    CompatibilityDiagnostics.failed(connectionTransport(),stage,reason);
     SafeDiagnosticBundle.mark(SafeDiagnosticBundle.Step.CONNECTION_UNAVAILABLE);
   }
 
@@ -1570,6 +1631,7 @@ public final class MainActivity extends Activity {
   }
   @Override
   protected void onDestroy() {
+    if(shizukuConnection!=null)shizukuConnection.close();
     clearCredentials();
     clearDetailSelection();
     if (installResultDialog != null) installResultDialog.dismiss();

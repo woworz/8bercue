@@ -129,7 +129,7 @@ public final class ProfileUserService extends IProfileService.Stub {
             catch (SecurityException unsupportedMutationState) { /* Still display an empty/inactive card for recovery. */ }
             reply.put("profiles", profiles).put("count", profiles.length()).put("writeQualified",writeQualified)
                 .put("reader",target.reader).put("eidMasked",target.eidMasked).put("description",SystemHalAdapter.describeReader(target.reader));
-            reply.put("connectionMethod","adb_shell");
+            reply.put("connectionMethod","Shizuku".equals(transport)?"shizuku":"adb_shell");
             reply.put("transport",transport+" UID2000 / "+target.reader);
             CompatibilityReport compatibility=FiveberReaderSelector.compatibilityReport();
             reply.put("compatibility",compatibilityJson(compatibility,true));

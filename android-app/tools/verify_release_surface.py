@@ -18,8 +18,7 @@ LAB_CLASSES = {
     'CompanionIngressTestInstrumentation', 'CompanionIngressNegativeProbe', 'UiLayoutTestInstrumentation',
 }
 FORBIDDEN = (b'5D7937BEFD986578', b'0A0E26091CA92454', b'QRF-SPEEDTEST',
-             b'8bercue-test-authority', b'rsp.truphone.com', b'com/tananaev/adblib/',
-             b'Lrikka/shizuku/', b'Lmoe/shizuku/', b'Use Shizuku')
+             b'8bercue-test-authority', b'rsp.truphone.com', b'com/tananaev/adblib/')
 
 def dex_strings(data):
     if data[:4] != b'dex\n' or len(data) < 112:

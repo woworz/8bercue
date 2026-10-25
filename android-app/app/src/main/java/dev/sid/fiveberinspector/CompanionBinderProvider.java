@@ -26,6 +26,8 @@ public final class CompanionBinderProvider extends ContentProvider {
     private static String bootstrapFeedback="";
     static synchronized String bootstrapFeedback(){return bootstrapFeedback;}
     private static IBinder management;
+    private static String managementMethod="adb_shell";
+    static synchronized boolean usesShizuku(){return management()!=null&&"shizuku".equals(managementMethod);}
     private static String pendingNonce;
     private static long pendingUntil;
     private static final IBinder clientLifetime = new Binder();
@@ -69,13 +71,16 @@ public final class CompanionBinderProvider extends ContentProvider {
         }
         IBinder next=extras.getBinder("managementBinder");
         try {
+            String source=extras.getString("connectionMethod");
+            if(source==null)source="adb_shell";
+            if(!source.equals("adb_shell")&&!source.equals("shizuku"))throw new SecurityException("Invalid connection method");
             String expected=NativeLpacBundle.digest(new java.io.File(getContext().getApplicationInfo().sourceDir));
             if(!expected.equals(extras.getString("apkSha256")))throw new SecurityException("Companion artifact mismatch");
             if(next==null||!next.pingBinder()||!IProfileService.Stub.DESCRIPTOR.equals(next.getInterfaceDescriptor()))
                 throw new SecurityException("Invalid management interface");
             if(management!=null&&management.pingBinder())throw new SecurityException("Existing management session");
             next.linkToDeath(()->{synchronized(CompanionBinderProvider.class){if(management==next)management=null;}},0);
-            management=next;pendingNonce=null;pendingUntil=0;bootstrapFeedback="";
+            management=next;managementMethod=source;pendingNonce=null;pendingUntil=0;bootstrapFeedback="";
             Bundle result=new Bundle();result.putBoolean("accepted",true);return result;
         }catch(Exception failure){throw new SecurityException("Management handoff rejected",failure);}
     }

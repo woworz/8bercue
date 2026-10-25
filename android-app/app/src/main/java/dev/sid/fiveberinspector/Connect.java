@@ -31,7 +31,8 @@ public final class Connect {
     } catch (Exception ignored) { /* Expired/consumed challenges cannot alter app status. */ }
   }
   private static int run(String[] args) throws Exception {
-    if (android.os.Process.myUid() != 2000 || args.length != 0) {
+    boolean shizuku = args.length == 1 && "--shizuku".equals(args[0]);
+    if (android.os.Process.myUid() != 2000 || (args.length != 0 && !shizuku)) {
       System.err.println("Run this command through authorized ADB; no root or Shizuku is required."); return 1;
     }
     Process owner = new ProcessBuilder("/system/bin/am", "get-current-user").redirectErrorStream(true).start();
@@ -81,7 +82,8 @@ public final class Connect {
       }
       try {
         ProcessBuilder launch = new ProcessBuilder("/system/bin/nohup", "/system/bin/app_process", "/",
-            "--nice-name=8bercue-management-v1", "dev.sid.fiveberinspector.CompanionManagementStarter", "--connect-management");
+            "--nice-name=8bercue-management-v1", "dev.sid.fiveberinspector.CompanionManagementStarter",
+            shizuku ? "--connect-shizuku" : "--connect-management");
         launch.environment().put("CLASSPATH", apk);
         launch.redirectInput(new File("/dev/null")).redirectErrorStream(true).redirectOutput(log);
         Process child = launch.start();

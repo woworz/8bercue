@@ -42,9 +42,13 @@ public final class BootstrapProviderOfflineTest {
   payload.putString("apkSha256","expected-apk-sha");
   payload.putBinder("managementBinder",new Binder(){public String getInterfaceDescriptor(){return "wrong";}});
   rejected(CompanionBinderProvider.MANAGEMENT_METHOD,payload,"Typed interface remains mandatory");
+  payload.putBinder("managementBinder",new Binder());payload.putString("connectionMethod","arbitrary");
+  rejected(CompanionBinderProvider.MANAGEMENT_METHOD,payload,"Connection method must be allowlisted");
+  payload.putString("connectionMethod","adb_shell");
   Binder service=new Binder();payload.putBinder("managementBinder",service);
   check(call(CompanionBinderProvider.MANAGEMENT_METHOD,payload).getBoolean("accepted"),"Only full verified handoff connects");
   check(call(CompanionBinderProvider.STATE_METHOD,new Bundle()).getBoolean("connected"),"State confirms live accepted Binder");
+  check(!CompanionBinderProvider.usesShizuku(),"ADB connection retains its transport");
   rejected(CompanionBinderProvider.FEEDBACK_METHOD,next,"Consumed challenge cannot change state");
   rejected(CompanionBinderProvider.MANAGEMENT_METHOD,payload,"One-use challenge cannot replay");
   CompanionBinderProvider.beginManagementRecoveryBootstrap();
@@ -55,7 +59,9 @@ public final class BootstrapProviderOfflineTest {
   rejected(CompanionBinderProvider.MANAGEMENT_METHOD,replacement,"Cannot replace an existing live Binder even during recovery");
   service.alive=false;
   check(!call(CompanionBinderProvider.STATE_METHOD,new Bundle()).getBoolean("connected"),"Dead Binder cannot report success");
+  replacement.putString("connectionMethod","shizuku");
   check(call(CompanionBinderProvider.MANAGEMENT_METHOD,replacement).getBoolean("accepted"),"Authenticated replacement only after old backend is dead");
+  check(CompanionBinderProvider.usesShizuku(),"Shizuku shares the authenticated management handoff");
   rejected(CompanionBinderProvider.MANAGEMENT_METHOD,replacement,"Recovery challenge remains single-use");
   System.out.println("PASS "+checks+" bootstrap provider authentication/state assertions (actual production provider; simulated Binder)");
  }

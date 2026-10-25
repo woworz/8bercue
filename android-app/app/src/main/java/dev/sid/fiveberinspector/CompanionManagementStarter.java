@@ -22,7 +22,8 @@ public final class CompanionManagementStarter {
   }
  }
  private static void run(String[]args)throws Exception {
-  if(android.os.Process.myUid()!=2000||args.length!=1||!"--connect-management".equals(args[0]))throw new SecurityException("Explicit Shell bootstrap required");
+  boolean shizuku=args.length==1&&"--connect-shizuku".equals(args[0]);
+  if(android.os.Process.myUid()!=2000||args.length!=1||(!"--connect-management".equals(args[0])&&!shizuku))throw new SecurityException("Explicit Shell bootstrap required");
   Looper.prepareMainLooper();
   try(SystemProviderBridge.Connection connection=SystemProviderBridge.acquire("dev.sid.fiveberinspector.companion")) {
   Object provider=connection.provider;
@@ -45,7 +46,8 @@ public final class CompanionManagementStarter {
   },0);
   Bundle payload=new Bundle();payload.putString("nonce",nonce);payload.putInt("protocol",CompanionBinderProvider.MANAGEMENT_VERSION);payload.putInt("versionCode",BuildConfig.VERSION_CODE);
   payload.putString("apkSha256",NativeLpacBundle.digest(new java.io.File(NativeLpacBundle.installedApk())));
-  payload.putBinder("managementBinder",new ProfileUserService("Independent Binder").asBinder());
+  payload.putString("connectionMethod",shizuku?"shizuku":"adb_shell");
+  payload.putBinder("managementBinder",new ProfileUserService(shizuku?"Shizuku":"Independent Binder").asBinder());
   Bundle accepted=call(provider,CompanionBinderProvider.MANAGEMENT_METHOD,payload);
   if(accepted==null||!accepted.getBoolean("accepted"))throw new SecurityException("Management handoff rejected");
   }
