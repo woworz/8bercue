@@ -1,5 +1,11 @@
 # Signing and migration
 
+## Current fork release: 0.19.1-beta.4 / 49
+
+The owner requested this fork's signed build and GitHub Release on 2026-10-25 using the independent RSA-4096 key created earlier that day. Its certificate SHA-256 is `666132ddbf5e75021b59d8cd1da0783d34288cd8bfc8e027f6ad0e86e14165fe`. The owner has been given a local key/password backup; it is ignored by Git and must never be uploaded as a Release asset. The current APK is not signed by the upstream publisher identity documented below. Installation and upgrade on real devices have not been validated in this task. This local release has no remote reporting DSN and does not use the upstream protected Actions environment. Any future use of that environment needs separate signer/reporting configuration.
+
+## Upstream publication history and migration guidance
+
 Status: **limited Beta distribution authorized; stable/production qualification remains incomplete**. See BETA-POLICY.md. The application ID remains `dev.sid.fiveberinspector`. The current direct-distribution Beta is versionCode 48 / `0.19.1-beta.3`; the existing 0.18 and 0.19.0 Betas are retained. A user-authorized RSA-4096 production identity has been created for sid. Public certificate SHA-256: `24aa7984b0d0977ff1e87b57beca91b2e36a05c04a5443f1a47aa23d90a6ef1c`. The encrypted local backup passed a private-key restore check; off-device recovery custody remains to be established.
 
 The build accepts `FIVEBER_RELEASE_KEYSTORE`, `FIVEBER_RELEASE_STORE_PASSWORD`, `FIVEBER_RELEASE_KEY_ALIAS`, and `FIVEBER_RELEASE_KEY_PASSWORD` together. Partial configuration fails. Supply secrets through the release owner's protected environment, not a checked-in file, command arguments, build log, issue or chat. With no production inputs, release APK/AAB builds remain unsigned. Debug continues using the existing explicit lab key; it must never become a production identity by default.

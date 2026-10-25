@@ -8,6 +8,7 @@
 
 <p align="center">
   <a href="https://github.com/woworz/8bercue">当前仓库</a> ·
+  <a href="https://github.com/woworz/8bercue/releases">本仓库发布 APK</a> ·
   <a href="https://github.com/sidnvy/8bercue/releases">上游已发布 APK</a> ·
   <a href="BUILDING.md">构建说明</a>
 </p>
@@ -86,7 +87,7 @@ Shizuku 在这里用于启动现有管理服务。连接建立后，停止 Shizu
 
 ## 构建与贡献
 
-当前应用源码版本为 `0.19.1-beta.3`，`versionCode` 为 `48`。构建工具链、原生组件、依赖校验和签名方法见 [BUILDING.md](BUILDING.md)。自行构建的 APK 需要使用自己的签名；覆盖安装已有应用时，Android 要求签名兼容。
+当前应用源码版本为 `0.19.1-beta.4`，`versionCode` 为 `49`。构建工具链、原生组件、依赖校验和签名方法见 [BUILDING.md](BUILDING.md)。自行构建的 APK 需要使用自己的签名；覆盖安装已有应用时，Android 要求签名兼容。
 
 欢迎提交代码改进。反馈问题时，请说明应用版本、Android 版本、设备型号、连接方式及兼容性检查结果，不要公开激活码、完整 EID、ICCID 或其他敏感信息。
 
