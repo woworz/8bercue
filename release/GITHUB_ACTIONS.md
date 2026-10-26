@@ -1,6 +1,6 @@
 # GitHub Actions: CI and signed Beta publication
 
-This provides **three independent workflows** for the public 8bercue repository.
+This provides **three independent workflows** for the public 8bercueLa repository.
 
 * **Android CI** runs on pull requests (including forks) and pushes to `main`: hermetic Java/Python regressions, tracked native package inspection, fresh ARM64 native rebuild with pinned NDK, unsigned Android build, release-surface checks and lint. It receives no release secrets and cannot publish. An unsigned main-branch engineering APK is retained briefly as a CI artifact, **not** as a user-downloadable release.
 * **Verify protected signer** runs only when explicitly dispatched on `main` and approved through the same protected `beta-release` environment. It reconstructs the locked native payload, signs a temporary release APK with environment secrets and verifies its exact certificate fingerprint and reporting configuration. It **never** uploads the signed APK, creates tags, or publishes a Release. Run this first after configuring GitHub environment secrets.
@@ -19,7 +19,7 @@ In that environment, add these **secrets** (never in repo, logs or PR comments):
 | `FIVEBER_RELEASE_KEY_ALIAS` | Existing signing alias |
 | `FIVEBER_RELEASE_KEY_PASSWORD` | Existing key password |
 
-The environment **variable** `GLITCHTIP_DSN` (non-secret client config) is already configured from `release/REPORTING_BUILD.md`; update it there if the reporting project changes. Do not use somebody else's reporting project. The signing identity must match the pinned certificate SHA-256 from `release/SIGNING_AND_MIGRATION.md`.
+Remote feedback and crash reporting have been removed; no reporting environment variable is required. The signing identity must match the pinned certificate SHA-256 from `release/SIGNING_AND_MIGRATION.md`.
 
 **Credential custody decision:** Uploading the existing production signing keystore to GitHub Actions changes its trust boundary. Do this only with the release owner's explicit approval, after establishing off-device recovery custody. If this is not approved, leave these environment secrets absent: CI will work but publication intentionally fails closed. Do not create a new signing key merely to satisfy automation.
 
@@ -37,7 +37,7 @@ A release fails before publication when the source manifest is stale, version/ta
 
 ## Download behavior
 
-GitHub's `releases/latest` endpoint **excludes prereleases**. The 8bercue website already uses a Beta-aware GitHub Releases API resolver (`public/latest-release.js` in the separate website project). The CI workflow does not redeploy that website.
+GitHub's `releases/latest` endpoint **excludes prereleases**. The 8bercueLa website already uses a Beta-aware GitHub Releases API resolver (`public/latest-release.js` in the separate website project). The CI workflow does not redeploy that website.
 
 ## Scope / limitations
 

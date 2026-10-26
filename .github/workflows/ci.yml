@@ -36,7 +36,6 @@ jobs:
           bash android-app/tools/run_recovery_tests.sh
           python3 android-app/tools/test_localization.py
           python3 android-app/tools/test_reconcile_identity.py
-          python3 android-app/tools/test_feedback_privacy_contract.py
       - name: Verify tracked ARM64 native payload
         run: python3 android-app/tools/verify_native_release.py --require-page-size 16384
 

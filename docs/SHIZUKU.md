@@ -1,9 +1,9 @@
 # Shizuku connection
 
 Install Shizuku from https://shizuku.rikka.app/download/ and start it with wireless
-debugging or ADB. Open 8bercue, select **Connect your card → Connect using Shizuku**
+debugging or ADB. Open 8bercueLa, select **Connect your card → Connect using Shizuku**
 (also available in Settings), then allow the authorization prompt. If permission
-was permanently denied, allow 8bercue in Shizuku's Authorized applications and retry.
+was permanently denied, allow 8bercueLa in Shizuku's Authorized applications and retry.
 
 This build requires Shizuku API v12 or later running as Shell (UID 2000).
 Root-started Shizuku and Sui are explicitly rejected. Existing filesystem ownership,

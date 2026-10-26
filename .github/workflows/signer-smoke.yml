@@ -8,7 +8,7 @@ permissions:
   contents: read
 
 concurrency:
-  group: 8bercue-signer-smoke
+  group: 8bercueLa-signer-smoke
   cancel-in-progress: false
 
 jobs:
@@ -19,7 +19,6 @@ jobs:
     timeout-minutes: 60
     environment: beta-release
     env:
-      ORG_GRADLE_PROJECT_glitchtipDsn: ${{ vars.GLITCHTIP_DSN }}
       APPROVED_CERT_SHA256: 24aa7984b0d0977ff1e87b57beca91b2e36a05c04a5443f1a47aa23d90a6ef1c
 
     steps:
@@ -54,13 +53,13 @@ jobs:
           set -euo pipefail
           set +x
           umask 077
-          for name in RELEASE_KEYSTORE_BASE64 FIVEBER_RELEASE_STORE_PASSWORD FIVEBER_RELEASE_KEY_ALIAS FIVEBER_RELEASE_KEY_PASSWORD ORG_GRADLE_PROJECT_glitchtipDsn; do
+          for name in RELEASE_KEYSTORE_BASE64 FIVEBER_RELEASE_STORE_PASSWORD FIVEBER_RELEASE_KEY_ALIAS FIVEBER_RELEASE_KEY_PASSWORD; do
             if [[ -z "${!name:-}" ]]; then
               echo "Missing protected environment input: $name"
               exit 1
             fi
           done
-          dir="$RUNNER_TEMP/8bercue-signer-smoke"
+          dir="$RUNNER_TEMP/8bercueLa-signer-smoke"
           mkdir -m 700 -p "$dir"
           export FIVEBER_RELEASE_KEYSTORE="$dir/release.p12"
           trap 'rm -f "$FIVEBER_RELEASE_KEYSTORE"' EXIT
@@ -71,5 +70,5 @@ jobs:
           python3 android-app/tools/verify_artifact.py \
             android-app/app/build/outputs/apk/release/app-release.apk \
             --build-tools "$ANDROID_HOME/build-tools/35.0.0" \
-            --expected-signer-sha256 "$APPROVED_CERT_SHA256" --require-reporting
+            --expected-signer-sha256 "$APPROVED_CERT_SHA256"
           echo "PASS: protected signer and production APK verification (no artifact published)"

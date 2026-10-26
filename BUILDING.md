@@ -5,7 +5,7 @@ dependencies and SHA-256 verification. Run `bash android-app/tools/run_shizuku_t
 for the production authorization/lifecycle state machine regressions. See
 [Shizuku connection](docs/SHIZUKU.md) for setup and the real-device verification checklist.
 
-This branch builds the 8bercue 0.19.1-beta.4 source, versionCode 49. Debug-only laboratory tools, private device records, activation credentials and signing keys are excluded; none are compiled into the release APK. The public compatibility regressions run with `bash android-app/tools/run_compatibility_tests.sh`. UI/ADB command regressions run with `bash android-app/tools/run_ui_tests.sh`. Provider authentication/state regressions run with `bash android-app/tools/run_bootstrap_tests.sh`. Read-only recovery/worker exclusion checks run with `bash android-app/tools/run_recovery_tests.sh`. Bilingual resource, placeholder and fixed-error coverage runs with `python3 android-app/tools/test_localization.py`. Reconciliation identity-composition checks run with `python3 android-app/tools/test_reconcile_identity.py`. The private laboratory suite is not included.
+This branch builds the 8bercueLa 0.19.1-beta.4 source, versionCode 49. Debug-only laboratory tools, private device records, activation credentials and signing keys are excluded; none are compiled into the release APK. The public compatibility regressions run with `bash android-app/tools/run_compatibility_tests.sh`. UI/ADB command regressions run with `bash android-app/tools/run_ui_tests.sh`. Provider authentication/state regressions run with `bash android-app/tools/run_bootstrap_tests.sh`. Read-only recovery/worker exclusion checks run with `bash android-app/tools/run_recovery_tests.sh`. Bilingual resource, placeholder and fixed-error coverage runs with `python3 android-app/tools/test_localization.py`. Reconciliation identity-composition checks run with `python3 android-app/tools/test_reconcile_identity.py`. The private laboratory suite is not included.
 
 Use the versions in release/toolchain.json. Set JAVA_HOME to JDK 17+, ANDROID_HOME to the SDK with platform 36 and NDK 27.3.13750724. The Gradle wrapper downloads its pinned distribution; Maven dependencies are resolved from the repositories in settings.gradle with dependency locks and verification metadata. An existing populated Gradle cache supports --offline.
 
@@ -17,4 +17,4 @@ Install your signed APK with `adb -s YOUR_DEVICE install path/to/app-release.apk
 
 The repository SHA256.json records this release source snapshot, excluding the manifest itself. The Release SHA256SUMS records downloadable assets. Native source archives and license notices remain unmodified. See LICENSING.md, COPYING and android-app/third_party.
 
-For the publisher’s reporting-enabled Beta, apply `release/REPORTING_BUILD.md` before building; publication verification adds `--require-reporting`.
+Remote feedback and crash reporting have been removed. No reporting SDK or DSN configuration is required.

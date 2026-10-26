@@ -1,27 +1,16 @@
-# Privacy-first bug reporting (0.19.1 Beta)
+# Local diagnostics and compatibility
 
-Based on the published 0.19.0-beta.1 application code; does not change the
-authenticated ADB command, eUICC operation authorization, or profile write path.
+8bercueLa keeps compatibility checks, bounded connection stages and normalized
+failure codes on the phone. It has no problem-report form, email-report action,
+remote compatibility submission, crash-report setting or reporting SDK.
 
-- No background analytics/metrics. The only persistent local switch is
-  opt-in minimized crash-summary reporting, off by default.
-- Local bounded stage/error ring; no card identifiers, APDUs, activation codes,
-  device IDs or raw logging.
-- Existing ADB connection screen: report affordance and 2-minute timeout/error
-  classification; opening the preview never uploads.
-- Missing Binder/failed read: report fields are fixed enum codes, not raw
-  exception strings. This cannot distinguish every ROM root cause.
-- Settings: manual feedback/email, Diagnostic ZIP export, crash consent toggle.
-- GlitchTip receives a one-time structured event only after explicit confirmation.
-  On failure, email support/offline ZIP remains available.
-- DSN is provided via \`glitchtipDsn\` Gradle user property, not committed. Builds
-  without the property have disabled remote submission; do not label those
-  builds telemetry-capable.
-- Native library allowlist remains untouched; use \`sentry-android-core\`.
-- Test with \`JAVA_HOME\`, \`ANDROID_HOME\`: Android Release build + Lint Release,
-  existing UI/ADB/compatibility offline tests, and release surface validation.
+Choose **Settings → Save diagnostic ZIP** to select a local destination. The
+operation records and advanced recovery screens use the same ZIP export.
+The ZIP contains only allowlisted app/device details, local breadcrumbs and,
+when available, the last connection failure. It excludes raw card identifiers,
+profiles, activation codes, APDUs, logcat and private files. Saving does not
+upload anything; review the archive before sharing it yourself.
 
-**Non-goals:** Google Play release, automatic device data collection,
-hardware eUICC write/switch tests, retroactive changes to a published Beta tag.
-
-Beta3 (48) embeds the owner-provided client DSN. See `release/REPORTING_BUILD.md` for reproduction. Consent defaults remain unchanged; no account token is packaged.
+Removing reporting does not change ADB/Shizuku authorization, card operations,
+transaction journals or recovery protections. A missing Binder handshake alone
+does not prove ROM incompatibility.

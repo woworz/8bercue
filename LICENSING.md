@@ -1,4 +1,4 @@
-# 8bercue licensing
+# 8bercueLa licensing
 
 Copyright (C) 2026 sid for original 8bercue code owned by sid.
 

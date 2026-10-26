@@ -1,9 +1,9 @@
-8bercue privacy information — 20 October 2026
+8bercueLa privacy information — 26 October 2026
 
 Publisher: sid (individual)
 Privacy and support: support@sidnvy.com
 
-8bercue is independent of 5ber. It does not require a 5ber account and does not
+8bercueLa is independent of 5ber. It does not require a 5ber account and does not
 send your activation details to a 5ber service.
 
 The app reads your eUICC and installed profiles to show their status and verify
@@ -18,7 +18,7 @@ activation credentials, protocol messages and card identity/certificates require
 by the eSIM provisioning protocol, plus your network address. An installation
 notification is sent to the recipient verified in that transaction. Operator
 privacy policies apply to their processing. Local nickname and profile state
-operations do not require an 8bercue account or an 8bercue server.
+operations do not require an 8bercueLa account or an 8bercueLa server.
 
 Camera access is optional and used to scan an activation QR code. Selected QR
 images are decoded on your phone. There is no advertising or behavioral analytics SDK.
@@ -41,28 +41,18 @@ for a reviewed removal procedure; do not send activation codes, full EIDs, or
 private protocol payloads in a support request. The publisher cannot remotely
 read or erase these local records.
 
-8bercue has no advertising or behavioral analytics SDK and does not routinely
+8bercueLa has no advertising or behavioral analytics SDK and does not routinely
 upload screen views, clicks, connection attempts or device identifiers.
 A bounded, in-memory list of predefined connection stages and error codes
 supports troubleshooting without automatic network telemetry.
 
-Optional crash summaries are disabled by default. When you explicitly enable
-crash reporting in Settings, a Sentry-compatible SDK sends limited failure
-class and app code location to GlitchTip. Raw exception messages, full stack
-traces, screenshots, card content, activation details, APDUs, and unrestricted
-logs are excluded. You can disable future crash reporting in Settings.
+The app has no problem-report submission or crash-reporting SDK. Connection
+failures and compatibility observations remain on your phone. You can save a
+local diagnostic ZIP containing allowlisted app/device information and bounded
+connection stages and failure codes. Saving the ZIP does not upload it. A
+missing ADB handshake does not prove ROM incompatibility.
 
-After a failed ADB connection or verified card-read error, you may review a
-one-time compatibility report with Android version/API level, manufacturer,
-device model, ROM build ID, security patch level, app version, connection stage
-and normalized failure code. Choosing Send diagnostic report transmits only
-these allowlisted fields to GlitchTip. Canceling sends nothing, and one-time
-submission does not enable future crash reporting. The provider may process
-connection metadata, including the originating IP address; its own privacy
-policy applies to that processing. A missing ADB handshake does not prove ROM
-incompatibility. You can alternatively email support or save a diagnostic ZIP.
-
-Diagnostics are exported only when you choose to share them. They exclude raw
+Diagnostics are exported only when you choose to save a ZIP. They exclude raw
 identifiers, profile names, activation codes and protocol logs. Review the export
 before choosing a recipient. App backup is disabled.
 

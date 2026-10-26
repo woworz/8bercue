@@ -1,19 +1,9 @@
-# Reporting configuration for the publisher's Beta
+# Reporting removed
 
-The client DSN is public configuration embedded in the distributed APK, not an
-account API token. To reproduce the publisher's Beta3 payload, set this Gradle
-project property before building the source:
+8bercueLa no longer includes problem-report submission, crash reporting or the
+Sentry SDK. Builds do not use `glitchtipDsn` / `GLITCHTIP_DSN`, and artifact
+verification no longer accepts `--require-reporting`.
 
-```sh
-export ORG_GRADLE_PROJECT_glitchtipDsn='https://e36a6df0590f45d784df95e1eaf633d2@app.glitchtip.com/28969'
-```
-
-Forks and development builds should use their own reporting project or omit the
-property to disable remote submission. Never send test events to the publisher's
-project without authorization. An empty property still permits an offline-only
-engineering build; publisher artifact validation uses `--require-reporting` so a
-configured public release cannot silently omit its reporting destination.
-
-Configuration does not grant consent. Crash summaries stay off by default;
-one-time compatibility reports require a user-reviewed submission and do not
-change persistent crash-report consent. No behavioral analytics is enabled.
+The app retains local diagnostic ZIP export and compatibility checks. Saving a
+ZIP does not upload it. Existing published releases and their historical notes
+remain unchanged.

@@ -1,19 +1,19 @@
 <p align="center">
-  <img src="docs/images/icon.png" width="88" alt="8bercue 应用图标">
+  <img src="docs/images/icon.png" width="88" alt="8bercueLa 应用图标">
 </p>
 
-<h1 align="center">8bercue</h1>
+<h1 align="center">8bercueLa</h1>
 
 <p align="center">开源 Android eSIM 管理器，在自己的手机上管理卡片与配置文件。</p>
 
 <p align="center">
-  <a href="https://github.com/woworz/8bercue">当前仓库</a> ·
-  <a href="https://github.com/woworz/8bercue/releases">本仓库发布 APK</a> ·
+  <a href="https://github.com/woworz/8bercueLa">当前仓库</a> ·
+  <a href="https://github.com/woworz/8bercueLa/releases">本仓库发布 APK</a> ·
   <a href="https://github.com/sidnvy/8bercue/releases">上游已发布 APK</a> ·
   <a href="BUILDING.md">构建说明</a>
 </p>
 
-8bercue 用于管理兼容 eUICC 上的 eSIM 配置文件，也支持 5ber 等可插拔 eUICC 卡片，无需注册或登录 5ber 账户。
+8bercueLa 用于管理兼容 eUICC 上的 eSIM 配置文件，也支持 5ber 等可插拔 eUICC 卡片，无需注册或登录 5ber 账户。
 
 本仓库基于 [sidnvy/8bercue](https://github.com/sidnvy/8bercue)，在原有电脑 ADB 连接之外新增了 **Shizuku 授权**。本文说明当前源码的功能；上游已发布 APK 是否包含相应功能，请以其发布说明为准。
 
@@ -32,6 +32,7 @@
 - 自动检测卡片访问通道，查看兼容性结果，并在存在多张可读卡片时手动选择。
 - 提供操作记录与只读恢复流程，核实中断或结果不明确的操作。
 - 支持简体中文和英文，可跟随系统语言或在应用内切换。
+- 保存本地诊断 ZIP，不包含问题反馈或崩溃上报功能。
 
 安装和删除需要确认，已启用的配置文件需要先停用才能删除。具体可用操作取决于卡片、访问通道和当前恢复状态。
 
@@ -52,9 +53,9 @@
 ### 通过 Shizuku 连接
 
 1. 安装 [Shizuku](https://shizuku.rikka.app/download/)，按照其[官方指南](https://shizuku.rikka.app/guide/setup/)通过无线调试或 ADB 启动。
-2. 打开 8bercue，在首页点击“连接卡片 → 通过 Shizuku 连接”，也可从设置中进入。
-3. 在 Shizuku 授权弹窗中允许 8bercue，等待本地服务连接和卡片检查完成。
-4. 如果之前拒绝了授权，请在 Shizuku 的“已授权应用”中允许 8bercue，再返回应用重试。
+2. 打开 8bercueLa，在首页点击“连接卡片 → 通过 Shizuku 连接”，也可从设置中进入。
+3. 在 Shizuku 授权弹窗中允许 8bercueLa，等待本地服务连接和卡片检查完成。
+4. 如果之前拒绝了授权，请在 Shizuku 的“已授权应用”中允许 8bercueLa，再返回应用重试。
 
 **当前实现要求 Shizuku API v12 或更高版本，并以 Shell（UID 2000）运行，暂不支持 Root 启动模式或 Sui。**
 
@@ -63,7 +64,7 @@ Shizuku 在这里用于启动现有管理服务。连接建立后，停止 Shizu
 ### 通过电脑 ADB 连接
 
 1. 安装应用，在手机上启用 USB 调试，并授权可信电脑。
-2. 打开 8bercue，选择“通过电脑连接”。
+2. 打开 8bercueLa，选择“通过电脑连接”。
 3. 点击“复制 ADB 命令”，在页面显示的两分钟有效期内，在电脑终端执行该命令。
 4. 等待终端确认连接成功，再返回应用检查卡片访问状态。
 
@@ -97,4 +98,4 @@ Shizuku 在这里用于启动现有管理服务。连接建立后，停止 Shizu
 
 原有代码与本仓库修改遵循项目的 [AGPL-3.0-only 许可证](COPYING)。第三方组件保留各自许可证，详见[许可证说明](LICENSING.md)。隐私说明见 [PRIVACY.txt](PRIVACY.txt)，应用内提供简体中文译文。
 
-8bercue 是独立项目，与 5ber 无隶属关系。
+8bercueLa 是独立项目，与 5ber 无隶属关系。

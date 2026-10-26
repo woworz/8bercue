@@ -13,7 +13,7 @@ permissions:
   contents: read
 
 concurrency:
-  group: 8bercue-beta-release
+  group: 8bercueLa-beta-release
   cancel-in-progress: false
 
 jobs:
@@ -27,7 +27,6 @@ jobs:
       contents: write
     env:
       RELEASE_TAG: ${{ inputs.tag }}
-      ORG_GRADLE_PROJECT_glitchtipDsn: ${{ vars.GLITCHTIP_DSN }}
       APPROVED_CERT_SHA256: 24aa7984b0d0977ff1e87b57beca91b2e36a05c04a5443f1a47aa23d90a6ef1c
 
     steps:
@@ -89,15 +88,12 @@ jobs:
           FIVEBER_RELEASE_KEY_PASSWORD: ${{ secrets.FIVEBER_RELEASE_KEY_PASSWORD }}
         run: |
           set -euo pipefail
-          for name in RELEASE_KEYSTORE_BASE64 FIVEBER_RELEASE_STORE_PASSWORD FIVEBER_RELEASE_KEY_ALIAS FIVEBER_RELEASE_KEY_PASSWORD ORG_GRADLE_PROJECT_glitchtipDsn; do
+          for name in RELEASE_KEYSTORE_BASE64 FIVEBER_RELEASE_STORE_PASSWORD FIVEBER_RELEASE_KEY_ALIAS FIVEBER_RELEASE_KEY_PASSWORD; do
             if [[ -z "${!name}" ]]; then
               echo "Missing required beta-release environment input: $name"
               exit 1
             fi
           done
-          [[ "$ORG_GRADLE_PROJECT_glitchtipDsn" == https://* ]] || {
-            echo "Reporting destination must be HTTPS"; exit 1;
-          }
 
       - uses: actions/setup-java@cf277c60eb25467037889841efdb72551f06f6c3 # v4
         with:
@@ -125,7 +121,6 @@ jobs:
           bash android-app/tools/run_recovery_tests.sh
           python3 android-app/tools/test_localization.py
           python3 android-app/tools/test_reconcile_identity.py
-          python3 android-app/tools/test_feedback_privacy_contract.py
           bash android-app/tools/build_android_lpac.sh
 
       - name: Restore keystore only inside protected runner
@@ -135,8 +130,8 @@ jobs:
         run: |
           set -euo pipefail
           umask 077
-          mkdir -p "$RUNNER_TEMP/8bercue-signer"
-          export FIVEBER_RELEASE_KEYSTORE="$RUNNER_TEMP/8bercue-signer/release.jks"
+          mkdir -p "$RUNNER_TEMP/8bercueLa-signer"
+          export FIVEBER_RELEASE_KEYSTORE="$RUNNER_TEMP/8bercueLa-signer/release.jks"
           printf '%s' "$RELEASE_KEYSTORE_BASE64" | base64 --decode > "$FIVEBER_RELEASE_KEYSTORE"
           test -s "$FIVEBER_RELEASE_KEYSTORE"
           echo "FIVEBER_RELEASE_KEYSTORE=$FIVEBER_RELEASE_KEYSTORE" >> "$GITHUB_ENV"
@@ -153,7 +148,7 @@ jobs:
           python3 android-app/tools/verify_artifact.py \
             android-app/app/build/outputs/apk/release/app-release.apk \
             --build-tools "$ANDROID_HOME/build-tools/35.0.0" \
-            --expected-signer-sha256 "$APPROVED_CERT_SHA256" --require-reporting
+            --expected-signer-sha256 "$APPROVED_CERT_SHA256"
 
       - name: Stage immutable release assets and checksums
         shell: bash
@@ -162,14 +157,14 @@ jobs:
           FIVEBER_RELEASE_KEY_ALIAS: ${{ secrets.FIVEBER_RELEASE_KEY_ALIAS }}
         run: |
           set -euo pipefail
-          dir="$RUNNER_TEMP/8bercue-dist"
+          dir="$RUNNER_TEMP/8bercueLa-dist"
           mkdir -p "$dir"
           tag="$RELEASE_TAG"
           version="${{ steps.version.outputs.version }}"
           code="${{ steps.version.outputs.code }}"
           cp android-app/app/build/outputs/apk/release/app-release.apk \
-            "$dir/8bercue-$version-$code.apk"
-          git archive --format=tar "$tag" | gzip -n -9 > "$dir/8bercue-$version-source.tar.gz"
+            "$dir/8bercueLa-$version-$code.apk"
+          git archive --format=tar "$tag" | gzip -n -9 > "$dir/8bercueLa-$version-source.tar.gz"
           cp "${{ steps.version.outputs.notes }}" "$dir/RELEASE-NOTES.md"
           cp COPYING LICENSING.md PRIVACY.txt "$dir/"
           cp android-app/app/src/main/assets/legal/third-party-notices.txt "$dir/THIRD-PARTY-NOTICES.txt"
@@ -183,7 +178,7 @@ jobs:
           d=Path(sys.argv[1]); version=sys.argv[2]; code=int(sys.argv[3]); tag=sys.argv[4]
           ready=json.loads(Path("BETA-READINESS.json").read_text())
           assert ready["tag"]==tag and ready["apkVersion"]==version and ready["versionCode"]==code
-          apk=d/f"8bercue-{version}-{code}.apk"
+          apk=d/f"8bercueLa-{version}-{code}.apk"
           digest=hashlib.sha256(apk.read_bytes()).hexdigest()
           if ready.get("apkSha256") not in (None,"",digest):
               raise SystemExit("Stale readiness APK hash (must describe newly built artifact)")
@@ -205,8 +200,8 @@ jobs:
           if gh release view "$RELEASE_TAG" --repo "$GITHUB_REPOSITORY" >/dev/null 2>&1; then
             echo "Release appeared after preflight; refusing to overwrite it"; exit 1
           fi
-          gh release create "$RELEASE_TAG" "$RUNNER_TEMP/8bercue-dist/"* \
+          gh release create "$RELEASE_TAG" "$RUNNER_TEMP/8bercueLa-dist/"* \
             --repo "$GITHUB_REPOSITORY" \
             --verify-tag --prerelease \
-            --title "8bercue ${{ steps.version.outputs.version }} (Beta)" \
+            --title "8bercueLa ${{ steps.version.outputs.version }} (Beta)" \
             --notes-file "${{ steps.version.outputs.notes }}"

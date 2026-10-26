@@ -1,9 +1,0 @@
-#!/usr/bin/env bash
-set -euo pipefail
-cd "$(dirname "$0")/.."
-out="$(mktemp -d)"
-trap 'rm -rf "$out"' EXIT
-src=app/src/main/java/dev/sid/fiveberinspector
-mapfile -t stubs < <(find tools/bootstrap-stubs -name '*.java' -print)
-"${JAVA_HOME:+$JAVA_HOME/bin/}javac" -d "$out" "${stubs[@]}" "$src"/{OperationTokens,ConnectionFeedback,CompanionBinderProvider}.java tools/BootstrapProviderOfflineTest.java
-"${JAVA_HOME:+$JAVA_HOME/bin/}java" -cp "$out" dev.sid.fiveberinspector.BootstrapProviderOfflineTest
