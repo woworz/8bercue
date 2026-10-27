@@ -1,0 +1,1 @@
+package dev.sid.fiveberinspector;public interface IProfileService{android.os.IBinder asBinder();abstract class Stub {public static final String DESCRIPTOR="profiles";public static IProfileService asInterface(android.os.IBinder b){return ()->b;}}}

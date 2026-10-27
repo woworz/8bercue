@@ -7,4 +7,3 @@ __pycache__/
 *.keystore
 *.jks
 *.p12
-/android-app/

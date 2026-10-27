@@ -1,0 +1,1 @@
+package dev.sid.fiveberinspector;public interface ICompanionProbe{abstract class Stub{public static final String DESCRIPTOR="probe";public static ICompanionProbe asInterface(android.os.IBinder b){return new ICompanionProbe(){};}}}

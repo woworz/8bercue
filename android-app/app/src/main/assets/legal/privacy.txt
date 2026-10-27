@@ -1,0 +1,63 @@
+8bercueLa privacy information — 26 October 2026
+
+Publisher: sid (individual)
+Privacy and support: support@sidnvy.com
+
+8bercueLa is independent of 5ber. It does not require a 5ber account and does not
+send your activation details to a 5ber service.
+
+The app reads your eUICC and installed profiles to show their status and verify
+changes. EID and profile identifiers are masked on screen. Activation and
+confirmation codes are used for the installation you confirm; they are not
+included in diagnostics or transaction logs. Leaving the app clears the entered
+activation draft. Avoid sharing activation codes or screenshots containing them.
+
+When you confirm installation, the on-phone service communicates over HTTPS
+with the operator address in your activation code. The operator receives the
+activation credentials, protocol messages and card identity/certificates required
+by the eSIM provisioning protocol, plus your network address. An installation
+notification is sent to the recipient verified in that transaction. Operator
+privacy policies apply to their processing. Local nickname and profile state
+operations do not require an 8bercueLa account or an 8bercueLa server.
+
+Camera access is optional and used to scan an activation QR code. Selected QR
+images are decoded on your phone. There is no advertising or behavioral analytics SDK.
+The computer connection starts an authenticated ADB Shell service on your phone.
+You may instead authorize the optional Shizuku integration to start the same service
+on the phone. This requires Shizuku running through wireless debugging or ADB.
+Shizuku authorization is handled locally. The connected management service has the
+same lifetime as an ADB connection; stopping Shizuku or revoking its permission
+does not terminate an already connected management service or interrupt card work.
+
+Transaction records contain hashes of card/profile identity, operation state,
+timestamps and verification metadata. Notification records also contain the
+operator host and delivery sequence. These records stay on your phone to prevent
+unsafe retries. Privileged service records may remain after app uninstallation.
+Unresolved records must not be removed as a way to retry an uncertain operation.
+There is no automatic expiry for these safety records. They are retained locally
+until deliberately removed after all pending operations have been resolved.
+Uninstalling the app alone does not remove Shell-owned records. Contact support
+for a reviewed removal procedure; do not send activation codes, full EIDs, or
+private protocol payloads in a support request. The publisher cannot remotely
+read or erase these local records.
+
+8bercueLa has no advertising or behavioral analytics SDK and does not routinely
+upload screen views, clicks, connection attempts or device identifiers.
+A bounded, in-memory list of predefined connection stages and error codes
+supports troubleshooting without automatic network telemetry.
+
+The app has no problem-report submission or crash-reporting SDK. Connection
+failures and compatibility observations remain on your phone. You can save a
+local diagnostic ZIP containing allowlisted app/device information and bounded
+connection stages and failure codes. Saving the ZIP does not upload it. A
+missing ADB handshake does not prove ROM incompatibility.
+
+Diagnostics are exported only when you choose to save a ZIP. They exclude raw
+identifiers, profile names, activation codes and protocol logs. Review the export
+before choosing a recipient. App backup is disabled.
+
+No card inventory or activation data is automatically sent to sid. If you email
+support, your email address and anything you choose to include are received by
+the publisher and the email service provider to handle your request. Ask the
+privacy contact about access or deletion of support correspondence. Operator
+account, provisioning and network records are controlled by the relevant operator.
